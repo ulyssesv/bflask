@@ -7,6 +7,7 @@ Flask==0.11
 psycopg2==2.6.1
 python-dotenv==0.5.1
 raven==5.19.0
+raven[flask]
 requests==2.10.0
 xmltodict==0.10.1
 

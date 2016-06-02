@@ -3,8 +3,10 @@ from dotenv import load_dotenv
 from flask import Flask
 from flask_migrate import Migrate
 from bflask.models import db, Agency, Route, Stop
+from raven.contrib.flask import Sentry
 
 migrate = Migrate()
+sentry = Sentry()
 
 
 def create_app():
@@ -14,6 +16,7 @@ def create_app():
     app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', None)
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
+    sentry.init_app(app)
     db.init_app(app)
     migrate.init_app(app, db)
 
