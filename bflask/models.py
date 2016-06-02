@@ -1,7 +1,9 @@
+from flask_marshmallow import Marshmallow
 from flask_sqlalchemy import SQLAlchemy
 
 
 db = SQLAlchemy()
+ma = Marshmallow()
 
 
 class Agency(db.Model):
@@ -31,3 +33,12 @@ class Stop(db.Model):
     longitude = db.Column(db.Numeric(10, 7), index=True)
     title = db.Column(db.Unicode(100))
     routes = db.relationship('Route', secondary=route_stop, backref=db.backref('stops', lazy='dynamic'))
+
+
+class StopSchema(ma.ModelSchema):
+    class Meta:
+        model = Stop
+        fields = ('id', 'tag', 'external_id', 'latitude', 'longitude', 'title')
+
+stop_schema = StopSchema()
+stops_schema = StopSchema(many=True)

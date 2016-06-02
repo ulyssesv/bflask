@@ -6,6 +6,8 @@ This app fetches routes and stops information from the NextBus public API and
 stores it locally in a database. It also provides departure information for the
 closest stops of a desired location.
 
+Check the [documentation](http://bflask.readthedocs.io/en/latest/).
+
 ## Development Environment
 
 At a bare minimum you'll need:

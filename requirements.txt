@@ -1,9 +1,12 @@
-Flask-And-Redis==0.6
+Flask-Cors==2.1.2
+Flask-Limiter====0.9.3
+Flask-Marshmallow==0.6.2
 Flask-Migrate==1.8.0
 Flask-Script==2.0.5
 Flask-SQLAlchemy==2.1
 Flask-SSLify==0.1.5
 Flask==0.11
+marshmallow-sqlalchemy==0.8.1
 psycopg2==2.6.1
 python-dotenv==0.5.1
 raven==5.19.0
