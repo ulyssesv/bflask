@@ -1,0 +1,9 @@
+__pycache__
+*.py[cod]
+
+env
+.env
+
+.elasticbeanstalk/*
+!.elasticbeanstalk/*.cfg.yml
+!.elasticbeanstalk/*.global.yml
