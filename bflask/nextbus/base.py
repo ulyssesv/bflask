@@ -65,21 +65,26 @@ class NextBus:
         """Fetches batch predictions for the `_predictions_data` buffer by agency."""
         predictions = []
         for agency_tag, route_stop_tags in self._predictions_data.items():
-            predictions += self.predictions(agency_tag, route_stop_tags)['body']['predictions']
+            for response in self.predictions(agency_tag, route_stop_tags)['body']['predictions']:
+                response['@agencyTag'] = agency_tag  # We will need this later.
+                predictions.append(response)
 
-        stops = defaultdict(lambda: {'title': None, 'agency_title': None, 'routes': {}})
+        stops = defaultdict(lambda: {'title': None, 'routes': {}})
         for prediction in predictions:
             stops[prediction['@stopTag']]['title'] = prediction['@stopTitle']
-            stops[prediction['@stopTag']]['agency_title'] = prediction['@agencyTitle']
-            stops[prediction['@stopTag']]['routes'][prediction['@routeTag']] = {'trips': []}
+            stops[prediction['@stopTag']]['routes'][prediction['@routeTag']] = {
+                'agency_title': prediction['@agencyTitle'],
+                'agency_tag': prediction['@agencyTag'],
+                'trips': [],
+            }
 
             for direction in prediction.get('direction', []):
-                # TODO : Capture `dirTitleBecauseNoPrediction` attribute when no direction is present.
+                # TODO: Capture `dirTitleBecauseNoPrediction` attribute when no direction is present.
                 for trip in direction.get('prediction', []):
                     stops[prediction['@stopTag']]['routes'][prediction['@routeTag']]['trips'].append({
                         'direction_title': direction['@title'],
                         'trip_tag': trip['@tripTag'],
-                        'eta_timestamp': datetime.utcfromtimestamp(int(trip['@epochTime'])//1000.0),
+                        'eta_timestamp': int(trip['@epochTime'])//1000.0,
                         'eta_seconds': int(trip['@seconds']),
                         'is_departure': bool(strtobool(trip['@isDeparture'])),
                         'is_affected_by_layover': bool(strtobool(trip.get('@affectedByLayover', 'False'))),
