@@ -17,15 +17,21 @@ def create_app():
     app = Flask(__name__)
 
     load_dotenv(os.path.join(os.path.dirname(__file__), os.pardir, '.env'))
+    app.config['JSONIFY_PRETTYPRINT_REGULAR'] = False
     app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', None)
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    app.config['SQLALCHEMY_ECHO'] = True
     app.config['SITE_INDEX'] = 'https://github.com/ulyssesv/bflask'
-    app.config['STOP_LOCATION_RANGE_METERS'] = 1000
+
+    app.config['DEPARTURES_MIN_DISTANCE_METERS'] = 100
+    app.config['DEPARTURES_MAX_DISTANCE_METERS'] = 5000
+    app.config['DEPARTURES_DEFAULT_DISTANCE_METERS'] = 2500
+    app.config['DEPARTURES_MAX_STOPS'] = 25
 
     sentry.init_app(app)
     db.init_app(app)
-    ma.init_app(app)
     migrate.init_app(app, db)
+    ma.init_app(app)
     cors.init_app(app, resources={r'/api/*': {'origins': '*'}})
 
     from .main import main as main_blueprint
