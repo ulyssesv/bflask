@@ -1,30 +1,22 @@
-from bflask.models import Stop, StopSchema, stops_schema
-from decimal import Decimal, InvalidOperation
-from flask import request, jsonify
-from werkzeug.exceptions import BadRequestKeyError
+from bflask.models import Stop, StopSchema
+from flask import current_app
+from webargs.flaskparser import use_args
 from . import api
+from .validators import get_departures_args
 
 
 @api.route('/departures/', methods=['GET'])
-def get_departures():
+@use_args(get_departures_args)
+def get_departures(args):
     """
-    Get departures from all stops within a range from
-    the provided latitude and longitude.
+    Get a list of stops with their corresponding departure times
+    in a range of <distance> from the <latitude>,<longitude> position.
     """
-    try:
-        latitude = Decimal(request.args['latitude'])
-        longitude = Decimal(request.args['longitude'])
-    except (BadRequestKeyError, InvalidOperation) as e:
-        # TODO: Send an error code, validate arguments separately.
-        message = {
-            BadRequestKeyError: "Missing latitude and/or longitude arguments.",
-            InvalidOperation: "Bad latitude and/or longitude arguments. Must be decimal.",
-        }
+    stops = Stop.query_nearby(
+        args['latitude'],
+        args['longitude'],
+        args['distance'],
+        current_app.config['DEPARTURES_MAX_STOPS'])
 
-        response = jsonify({'error': 'Bad Request', 'message': message[type(e)]})
-        response.status_code = 400
-        return response
-
-    # TODO: Implement location based filter.
-    stops = Stop.query.limit(10).all()
-    return stops_schema.jsonify(stops)
+    stop_schema = StopSchema()
+    return stop_schema.jsonify(stops, many=True)
