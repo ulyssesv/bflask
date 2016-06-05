@@ -1,9 +1,11 @@
 from bflask.geolocation import GeoLocation
+from flask import current_app as app
 from flask_marshmallow import Marshmallow
 from flask_sqlalchemy import SQLAlchemy
 from marshmallow import fields
 from sqlalchemy import func, asc
 from sqlalchemy.ext.hybrid import hybrid_method
+from sqlalchemy.orm import joinedload, contains_eager
 
 db = SQLAlchemy()
 ma = Marshmallow()
@@ -20,7 +22,7 @@ class Agency(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     tag = db.Column(db.String(30), unique=True, index=True)
     title = db.Column(db.Unicode(100))
-    routes = db.relationship('Route', backref='agency', lazy='dynamic')
+    routes = db.relationship('Route', backref='agency', lazy='joined')
 
 
 class Route(db.Model):
@@ -37,7 +39,7 @@ class Stop(db.Model):
     latitude = db.Column(db.Numeric(10, 7), index=True)
     longitude = db.Column(db.Numeric(10, 7), index=True)
     title = db.Column(db.Unicode(100))
-    routes = db.relationship('Route', secondary=route_stop, backref=db.backref('stops', lazy='dynamic'))
+    routes = db.relationship('Route', secondary=route_stop, backref=db.backref('stops', lazy='joined'))
 
     @hybrid_method
     def distance(self, center_latitude, center_longitude):
@@ -59,11 +61,12 @@ class Stop(db.Model):
 
         return cls.query. \
             add_columns(Stop.distance(latitude, longitude).label('distance')). \
-            join(Route, Stop.routes). \
+            join(Stop.routes, Route.agency). \
             filter(
                 Stop.latitude.between(sw_location.deg_lat, ne_location.deg_lat),
                 Stop.longitude.between(sw_location.deg_lon, ne_location.deg_lon)). \
             order_by(asc(Stop.distance(latitude, longitude))). \
+            options(contains_eager(Stop.routes, Route.agency)). \
             limit(limit).all()
 
 
