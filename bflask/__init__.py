@@ -4,6 +4,7 @@ from flask import Flask
 from flask_cors import CORS
 from flask_marshmallow import Marshmallow
 from flask_migrate import Migrate
+from flask_redis import Redis
 from bflask.models import db, Agency, Route, Stop
 from raven.contrib.flask import Sentry
 
@@ -11,6 +12,7 @@ migrate = Migrate()
 sentry = Sentry()
 cors = CORS()
 ma = Marshmallow()
+redis = Redis()
 
 
 def create_app():
@@ -21,6 +23,7 @@ def create_app():
     app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', None)
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['SQLALCHEMY_ECHO'] = True
+    app.config['REDIS_URL'] = os.environ.get('REDIS_URL', None)
     app.config['SITE_INDEX'] = 'https://github.com/ulyssesv/bflask'
 
     app.config['DEPARTURES_MIN_DISTANCE_METERS'] = 100
@@ -33,6 +36,7 @@ def create_app():
     migrate.init_app(app, db)
     ma.init_app(app)
     cors.init_app(app, resources={r'/api/*': {'origins': '*'}})
+    redis.init_app(app)
 
     from .main import main as main_blueprint
     app.register_blueprint(main_blueprint)
