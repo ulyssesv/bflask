@@ -1,4 +1,7 @@
+from datetime import datetime
+from collections import defaultdict
 from urllib.parse import urlencode
+from distutils.util import strtobool
 from xml.etree import ElementTree
 
 import requests
@@ -16,11 +19,14 @@ class NextBus:
     class APIError(Exception):
         pass
 
-    def call(self, command, **kwargs):
+    def __init__(self):
+        self._predictions_data = defaultdict(list)
+
+    def call(self, command, *args, **kwargs):
         kwargs['command'] = command
 
         url = self.API_URL
-        url += '?{}'.format(urlencode(kwargs))
+        url += '?{}&{}'.format(urlencode(kwargs), urlencode(args))
 
         r = requests.get(url, headers={'Accept-Encoding': 'gzip, deflate'})
         xml = ElementTree.fromstring(r.text)
@@ -28,7 +34,8 @@ class NextBus:
         if xml[0].tag == 'Error':
             raise NextBus.APIError(xml[0].text.strip())
 
-        return xmltodict.parse(r.text, force_list={'route': True, 'stop': True})
+        force_list = {key: True for key in ('route', 'stop', 'predictions', 'direction', 'prediction')}
+        return xmltodict.parse(r.text, force_list=force_list)
 
     def agency_list(self):
         return self.call('agencyList')
@@ -40,5 +47,43 @@ class NextBus:
         route_arg = {'r': route_tag} if route_tag else {}
         return self.call('routeConfig', a=agency_tag, **route_arg)
 
-    def predictions(self, agency_tag, stop_id):
-        return self.call('predictions', a=agency_tag, stopId=stop_id)
+    def predictions(self, agency_tag, route_stop_tags):
+        """
+        Request multiple predictions from the <agency>'s <route_stop_tags>.
+
+        :param route_stop_tags: Format: `[{'route': <tag>, 'stop': <tag>}]`
+        """
+        # TODO: Respect `MAX_STOPS_PER_PREDICTION` API limit.
+        stops = [('stops', '{}|{}'.format(item['route'], item['stop'])) for item in route_stop_tags]
+        return self.call('predictionsForMultiStops', *stops, a=agency_tag)
+
+    def prepare_predictions(self, agency_tag, route_tag, stop_tag):
+        """Add route/stop to a `_predictions_data` buffer in order to fetch as a batch with `fetch_predictions`."""
+        self._predictions_data[agency_tag].append({'route': route_tag, 'stop': stop_tag})
+
+    def fetch_predictions(self):
+        """Fetches batch predictions for the `_predictions_data` buffer by agency."""
+        predictions = []
+        for agency_tag, route_stop_tags in self._predictions_data.items():
+            predictions += self.predictions(agency_tag, route_stop_tags)['body']['predictions']
+
+        stops = defaultdict(lambda: {'title': None, 'agency_title': None, 'routes': {}})
+        for prediction in predictions:
+            stops[prediction['@stopTag']]['title'] = prediction['@stopTitle']
+            stops[prediction['@stopTag']]['agency_title'] = prediction['@agencyTitle']
+            stops[prediction['@stopTag']]['routes'][prediction['@routeTag']] = {'trips': []}
+
+            for direction in prediction.get('direction', []):
+                # TODO : Capture `dirTitleBecauseNoPrediction` attribute when no direction is present.
+                for trip in direction.get('prediction', []):
+                    stops[prediction['@stopTag']]['routes'][prediction['@routeTag']]['trips'].append({
+                        'direction_title': direction['@title'],
+                        'trip_tag': trip['@tripTag'],
+                        'eta_timestamp': datetime.utcfromtimestamp(int(trip['@epochTime'])//1000.0),
+                        'eta_seconds': int(trip['@seconds']),
+                        'is_departure': bool(strtobool(trip['@isDeparture'])),
+                        'is_affected_by_layover': bool(strtobool(trip.get('@affectedByLayover', 'False'))),
+                        'vehicle': trip['@vehicle'],
+                    })
+
+        return stops
