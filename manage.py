@@ -1,6 +1,6 @@
-from nextbus import NextBus
 from bflask import create_app, db
 from bflask.models import Agency, Route, Stop
+from bflask.nextbus import NextBus
 from flask_migrate import MigrateCommand, Migrate
 from flask_script import Manager, Server
 from sqlalchemy import func

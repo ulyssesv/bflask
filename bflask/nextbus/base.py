@@ -11,6 +11,7 @@ class NextBus:
     """
     API_URL = 'http://webservices.nextbus.com/service/publicXMLFeed'
     MAX_ROUTES_PER_ROUTE_CONFIG = 100
+    MAX_STOPS_PER_PREDICTION = 150
 
     class APIError(Exception):
         pass
