@@ -12,3 +12,8 @@ services:
 
 before_script:
   - psql -c 'create database travis_ci_test;' -U postgres
+
+env:
+  global:
+    - TEST_DATABASE_URL=postgresql://postgres:@localhost/travis_ci_test
+    - DATABASE_URL=postgresql://postgres:@localhost/travis_ci_test
