@@ -22,14 +22,14 @@ def create_app():
     app.config['JSONIFY_PRETTYPRINT_REGULAR'] = False
     app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', None)
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-    app.config['SQLALCHEMY_ECHO'] = True
+    app.config['SQLALCHEMY_ECHO'] = False
     app.config['REDIS_URL'] = os.environ.get('REDIS_URL', None)
     app.config['SITE_INDEX'] = 'https://github.com/ulyssesv/bflask'
 
-    app.config['DEPARTURES_MIN_DISTANCE_METERS'] = 100
-    app.config['DEPARTURES_MAX_DISTANCE_METERS'] = 5000
-    app.config['DEPARTURES_DEFAULT_DISTANCE_METERS'] = 2500
-    app.config['DEPARTURES_MAX_STOPS'] = 25
+    app.config['API_MIN_DISTANCE_METERS'] = 100
+    app.config['API_MAX_DISTANCE_METERS'] = 5000
+    app.config['API_DEFAULT_DISTANCE_METERS'] = 2500
+    app.config['API_MAX_STOPS'] = 25
 
     sentry.init_app(app)
     db.init_app(app)

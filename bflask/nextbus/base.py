@@ -21,6 +21,7 @@ class NextBus:
 
     def __init__(self):
         self._predictions_data = defaultdict(list)
+        self._stop_data = {}
 
     def call(self, command, *args, **kwargs):
         kwargs['command'] = command
@@ -54,24 +55,30 @@ class NextBus:
         :param route_stop_tags: Format: `[{'route': <tag>, 'stop': <tag>}]`
         """
         # TODO: Respect `MAX_STOPS_PER_PREDICTION` API limit.
-        stops = [('stops', '{}|{}'.format(item['route'], item['stop'])) for item in route_stop_tags]
+        stops = [('stops', '{}|{}'.format(item['route'].tag, item['stop'].tag)) for item in route_stop_tags]
         return self.call('predictionsForMultiStops', *stops, a=agency_tag)
 
-    def prepare_predictions(self, agency_tag, route_tag, stop_tag):
+    def prepare_predictions(self, agency, route, stop):
         """Add route/stop to a `_predictions_data` buffer in order to fetch as a batch with `fetch_predictions`."""
-        self._predictions_data[agency_tag].append({'route': route_tag, 'stop': stop_tag})
+        self._predictions_data[agency].append({'route': route, 'stop': stop})
+        self._stop_data[stop.tag] = stop
 
     def fetch_predictions(self):
         """Fetches batch predictions for the `_predictions_data` buffer by agency."""
         predictions = []
-        for agency_tag, route_stop_tags in self._predictions_data.items():
-            for response in self.predictions(agency_tag, route_stop_tags)['body']['predictions']:
-                response['@agencyTag'] = agency_tag  # We will need this later.
+        for agency, route_stop_tags in self._predictions_data.items():
+            for response in self.predictions(agency.tag, route_stop_tags)['body']['predictions']:
+                response['@agencyTag'] = agency.tag  # We will need this later.
                 predictions.append(response)
 
-        stops = defaultdict(lambda: {'title': None, 'routes': {}})
+        stops = defaultdict(lambda: {'routes': {}})
         for prediction in predictions:
-            stops[prediction['@stopTag']]['title'] = prediction['@stopTitle']
+            stops[prediction['@stopTag']].update({
+                'title': prediction['@stopTitle'],
+                'latitude': self._stop_data[prediction['@stopTag']].latitude,
+                'longitude': self._stop_data[prediction['@stopTag']].longitude,
+                'distance': self._stop_data[prediction['@stopTag']].distance,
+            })
             stops[prediction['@stopTag']]['routes'][prediction['@routeTag']] = {
                 'agency_title': prediction['@agencyTitle'],
                 'agency_tag': prediction['@agencyTag'],

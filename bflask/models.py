@@ -1,11 +1,12 @@
 from bflask.geolocation import GeoLocation
 from flask import current_app as app
 from flask_marshmallow import Marshmallow
+from flask_marshmallow.fields import URLFor
 from flask_sqlalchemy import SQLAlchemy
 from marshmallow import fields
 from sqlalchemy import func, asc
 from sqlalchemy.ext.hybrid import hybrid_method
-from sqlalchemy.orm import joinedload, contains_eager
+from sqlalchemy.orm import contains_eager
 
 db = SQLAlchemy()
 ma = Marshmallow()
@@ -70,9 +71,26 @@ class Stop(db.Model):
             limit(limit).all()
 
 
+class AgencySchema(ma.ModelSchema):
+    class Meta:
+        model = Agency
+        fields = ('id', 'tag', 'title')
+
+
+class RouteSchema(ma.ModelSchema):
+    agency = fields.Nested(AgencySchema)
+
+    class Meta:
+        model = Route
+        fields = ('id', 'tag', 'title', 'agency')
+
+
 class StopSchema(ma.ModelSchema):
     distance = fields.Decimal(places=0, dump_only=True)
+    routes = fields.Nested(RouteSchema, many=True)
+    departures = URLFor('api.get_stop_departures', id='<id>')
 
     class Meta:
         model = Stop
-        fields = ('id', 'tag', 'external_id', 'latitude', 'longitude', 'title', 'distance')
+        fields = ('id', 'tag', 'external_id', 'latitude', 'longitude', 'title', 'distance', 'routes', 'departures')
+
