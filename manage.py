@@ -27,7 +27,10 @@ def load():
     r = nb.agency_list()
     agencies = []
     for agency in r['body']['agency']:
-        agencies.append(Agency(tag=agency['@tag'], title=agency['@title']))
+        # TODO: Refactor the Stop model to remove this lock. The Stop.tag and stop.external_id are
+        # only unique when associated to a route/agency.
+        if agency['@tag'] == 'sf-muni':
+            agencies.append(Agency(tag=agency['@tag'], title=agency['@title']))
 
     db.session.bulk_save_objects(agencies)
     print("done.")

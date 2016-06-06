@@ -23,7 +23,7 @@ class Agency(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     tag = db.Column(db.String(30), unique=True, index=True)
     title = db.Column(db.Unicode(100))
-    routes = db.relationship('Route', backref='agency', lazy='joined')
+    routes = db.relationship('Route', backref='agency', lazy='dynamic')
 
 
 class Route(db.Model):
