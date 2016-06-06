@@ -1,4 +1,4 @@
-from bflask.models import Stop, StopSchema
+from bflask.models import Stop, StopSchema, Route
 from bflask.nextbus import NextBus
 from flask import current_app as app, jsonify
 from webargs.flaskparser import use_args
@@ -25,16 +25,27 @@ def get_stops(args):
         stops[i] = stops[i].Stop
 
     stop_schema = StopSchema()
-    return stop_schema.jsonify(stops, many=True)
+    return jsonify({'stops': stop_schema.dump(stops, many=True)[0]})
 
 
-@api.route('/stops/<int:id>/departures', methods=['GET'])
+@api.route('/stops/<string:tag>/departures/', methods=['GET'])
 @use_args(get_stop_args)
-def get_stop_departures(args):
+def get_stop_departures(args, tag):
     """
-    TODO.
+    Get all departures from a certain stop.
     """
-    return jsonify({})
+    nb = NextBus()
+
+    stops = Stop.query_by_tag(args['tag'], app.config['API_MAX_STOPS'])
+
+    for stop in stops:
+        for route in stop.routes:
+            stop.distance = None  # Avoid serializing the hybrid method.
+            nb.prepare_predictions(route.agency, route, stop)
+
+    response = nb.fetch_predictions()
+
+    return jsonify({'stops': response})
 
 
 @api.route('/departures/', methods=['GET'])
@@ -65,4 +76,4 @@ def get_departures(args):
 
     response = nb.fetch_predictions()
 
-    return jsonify(response)
+    return jsonify({'stops': response})

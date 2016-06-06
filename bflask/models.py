@@ -70,6 +70,16 @@ class Stop(db.Model):
             options(contains_eager(Stop.routes, Route.agency)). \
             limit(limit).all()
 
+    @classmethod
+    def query_by_tag(cls, tag, limit):
+        """Returns all stops with tag <tag>."""
+        # TODO: Tag could be unique per agency.
+        return cls.query. \
+            join(Stop.routes, Route.agency). \
+            filter(Stop.tag == tag). \
+            options(contains_eager(Stop.routes, Route.agency)). \
+            limit(limit).all()
+
 
 class AgencySchema(ma.ModelSchema):
     class Meta:
@@ -88,9 +98,26 @@ class RouteSchema(ma.ModelSchema):
 class StopSchema(ma.ModelSchema):
     distance = fields.Decimal(places=0, dump_only=True)
     routes = fields.Nested(RouteSchema, many=True)
-    departures = URLFor('api.get_stop_departures', id='<id>')
+    departures = URLFor('api.get_stop_departures', tag='<tag>')
 
     class Meta:
         model = Stop
         fields = ('id', 'tag', 'external_id', 'latitude', 'longitude', 'title', 'distance', 'routes', 'departures')
 
+
+class Departure:
+    """Logical Departure model."""
+    def __init__(self, agency_tag, route_tag, stop_tag):
+        self.agency_tag = agency_tag
+        self.route_tag = route_tag
+        self.stop_tag = stop_tag
+
+    @classmethod
+    def make_key(cls, agency_tag, route_tag, stop_tag):
+        return '{}:{}:{}'.format(agency_tag, route_tag, stop_tag)
+
+    @classmethod
+    def get_cached(cls, agency_tag, route_tag, stop_tag):
+        """Returns JSON decoded list of cached departures or an empty list."""
+        redis = app.extensions['redis']['REDIS']
+        return redis.get(cls.make_key(agency_tag, route_tag, stop_tag)) or []

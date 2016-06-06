@@ -1,4 +1,4 @@
-from bflask import create_app
+from bflask import create_app, db
 from bflask.models import Stop
 from flask import current_app
 from webargs import fields, validate, ValidationError
@@ -7,12 +7,13 @@ from webargs import fields, validate, ValidationError
 app = create_app()
 
 with app.app_context():
-    def stop_exists(id):
-        if not Stop.query.get(id):
-            raise ValidationError("Stop does not exist.", status_code=404)
+    def stop_exists(tag):
+        if not db.session.query(db.exists().where(Stop.tag == tag)).scalar():
+            # TODO: Return 404 instead of 422.
+            raise ValidationError("Stop does not exist.")
 
     get_stop_args = {
-        'id': fields.Int(required=True, validate=stop_exists),
+        'tag': fields.Str(required=True, validate=stop_exists, location='view_args'),
     }
 
     get_location_args = {

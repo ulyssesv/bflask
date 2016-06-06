@@ -75,11 +75,13 @@ class NextBus:
         for prediction in predictions:
             stops[prediction['@stopTag']].update({
                 'title': prediction['@stopTitle'],
+                'tag': prediction['@stopTag'],
                 'latitude': self._stop_data[prediction['@stopTag']].latitude,
                 'longitude': self._stop_data[prediction['@stopTag']].longitude,
                 'distance': self._stop_data[prediction['@stopTag']].distance,
             })
             stops[prediction['@stopTag']]['routes'][prediction['@routeTag']] = {
+                'title': prediction['@routeTitle'],
                 'agency_title': prediction['@agencyTitle'],
                 'agency_tag': prediction['@agencyTag'],
                 'trips': [],
@@ -98,4 +100,4 @@ class NextBus:
                         'vehicle': trip['@vehicle'],
                     })
 
-        return stops
+        return [stop for key, stop in stops.items()]
