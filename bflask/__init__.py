@@ -1,10 +1,9 @@
-import os
-from dotenv import load_dotenv
 from flask import Flask
 from flask_cors import CORS
 from flask_marshmallow import Marshmallow
 from flask_migrate import Migrate
 from flask_redis import Redis
+from bflask.config import config
 from bflask.models import db, Agency, Route, Stop
 from raven.contrib.flask import Sentry
 
@@ -15,21 +14,11 @@ ma = Marshmallow()
 redis = Redis()
 
 
-def create_app():
+def create_app(config_name='default'):
     app = Flask(__name__)
 
-    load_dotenv(os.path.join(os.path.dirname(__file__), os.pardir, '.env'))
-    app.config['JSONIFY_PRETTYPRINT_REGULAR'] = False
-    app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', None)
-    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-    app.config['SQLALCHEMY_ECHO'] = False
-    app.config['REDIS_URL'] = os.environ.get('REDIS_URL', None)
-    app.config['SITE_INDEX'] = 'https://github.com/ulyssesv/bflask'
-
-    app.config['API_MIN_DISTANCE_METERS'] = 100
-    app.config['API_MAX_DISTANCE_METERS'] = 5000
-    app.config['API_DEFAULT_DISTANCE_METERS'] = 2500
-    app.config['API_MAX_STOPS'] = 25
+    app.config.from_object(config[config_name])
+    config[config_name].init_app(app)
 
     sentry.init_app(app)
     db.init_app(app)

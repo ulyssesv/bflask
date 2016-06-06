@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<body copyright="All data copyright San Francisco Muni 2016.">
+    <predictions agencyTitle="San Francisco Muni" routeTitle="5R-Fulton Rapid" routeTag="5R"
+                 stopTitle="Market Between 5th &amp; 4th St" stopTag="5644">
+        <direction title="Inbound to Transbay Terminal">
+            <prediction epochTime="1465250893447" seconds="215" minutes="3" isDeparture="false" dirTag="5R___I_F00"
+                        vehicle="5413" block="0510" tripTag="7127568"/>
+            <prediction epochTime="1465251341021" seconds="663" minutes="11" isDeparture="false" dirTag="5R___I_F00"
+                        vehicle="5446" block="0511" tripTag="7127569"/>
+            <prediction epochTime="1465251822413" seconds="1144" minutes="19" isDeparture="false" dirTag="5R___I_F00"
+                        vehicle="5422" block="0503" tripTag="7127570"/>
+            <prediction epochTime="1465252120025" seconds="1442" minutes="24" isDeparture="false" dirTag="5R___I_F00"
+                            vehicle="5420" block="0513" tripTag="7127571"/>
+            <prediction epochTime="1465252687212" seconds="2009" minutes="33" isDeparture="false" dirTag="5R___I_F00"
+                        vehicle="5473" block="0515" tripTag="7127572"/>
+        </direction>
+        <message text="We&apos;re on Twitter: @sfmta_muni" priority="Low"/>
+        <message text="Sign up for email &amp; text service alerts at sfmta.com." priority="Low"/>
+    </predictions>
+</body>
