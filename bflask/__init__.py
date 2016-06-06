@@ -1,3 +1,4 @@
+import os
 from flask import Flask
 from flask_cors import CORS
 from flask_marshmallow import Marshmallow
@@ -14,7 +15,7 @@ ma = Marshmallow()
 redis = Redis()
 
 
-def create_app(config_name='default'):
+def create_app(config_name=os.environ.get('CONFIG_NAME', 'default')):
     app = Flask(__name__)
 
     app.config.from_object(config[config_name])

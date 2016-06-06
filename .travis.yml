@@ -16,4 +16,4 @@ before_script:
 env:
   global:
     - TEST_DATABASE_URL=postgresql://postgres:@localhost/travis_ci_test
-    - DATABASE_URL=postgresql://postgres:@localhost/travis_ci_test
+    - CONFIG_NAME=testing

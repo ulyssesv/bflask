@@ -1,6 +1,5 @@
 from bflask import create_app, db
 from bflask.models import Stop
-from flask import current_app
 from webargs import fields, validate, ValidationError
 
 
@@ -20,9 +19,9 @@ with app.app_context():
         'latitude': fields.Number(required=True, validate=validate.Range(min=-85, max=85)),
         'longitude': fields.Number(required=True, validate=validate.Range(min=-180, max=180)),
         'distance': fields.Integer(
-            missing=current_app.config['API_DEFAULT_DISTANCE_METERS'],
+            missing=app.config['API_DEFAULT_DISTANCE_METERS'],
             validate=validate.Range(
-                min=current_app.config['API_MIN_DISTANCE_METERS'],
-                max=current_app.config['API_MAX_DISTANCE_METERS'])
+                min=app.config['API_MIN_DISTANCE_METERS'],
+                max=app.config['API_MAX_DISTANCE_METERS'])
         ),
     }
