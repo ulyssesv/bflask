@@ -6,7 +6,7 @@ load_dotenv(os.path.join(os.path.dirname(__file__), os.pardir, '.env'))
 
 class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY', 'NOTSOSECRET')
-    SERVER_NAME = 'localhost:5000'
+    SERVER_NAME = os.environ.get('SERVER_NAME', 'localhost:5000')
     SQLALCHEMY_COMMIT_ON_TEARDOWN = True
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_ECHO = False

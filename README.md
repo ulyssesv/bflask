@@ -74,7 +74,7 @@ The app is hosted on AWS using the following services:
 **bflask database:**  RDS  
 **bangular static website:** S3
 
-The `DATABASE_URL` environment variable is required to be set in the production environment. You can also set `SENTRY_DSN` for exception logging.
+The `DATABASE_URL` and `CONFIG_NAME='production'` environment variables are required to be set in the production environment. You can also set `SENTRY_DSN` for exception logging.
 
 Possible improvements:
 - add CloudFront to the static website
