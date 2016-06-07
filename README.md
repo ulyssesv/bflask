@@ -109,7 +109,7 @@ In a production scenario, I'd think carefully about each dependency/package befo
 
 ### Database
 
-Since we're talking about using coordinates, one clear choice is PostgreSQL. It could be extendend to use the GIS addons (I'm not using), or even to PostGIS without going too far. Another option would be Redis with its Geo API (GEOADD, GEOSET). Persistance is not a big issue since the data isn't sensitive (it should be reloaded any time).
+Since we're talking about using coordinates, one clear choice is PostgreSQL. It could be extended to use the GIS addons (I'm not using), or even to PostGIS without going too far. Another option would be Redis with its Geo API (GEOADD, GEOSET). Persistence is not a big issue since the data isn't sensitive (it should be reloaded any time).
 
 ### Application Structure
 
@@ -118,18 +118,18 @@ The app structure was heavily based on [Flasky](https://github.com/miguelgrinber
 The biggest concerns on designing the app were:
 - respecting most of the [12factor](http://12factor.net/) factors
 - avoiding too much coupling among the modules
-- trying to assign a single responsability to each module
+- trying to assign a single responsibility to each module
 - writing modules that are easy to test
-- avoiding really crappy performance (looped queries, huge memory comsumption) code
+- avoiding really crappy performance (looped queries, huge memory consumption) code
 - avoiding really insecure code
 
 ### Data Source
 
-I chose the [NextBus](http://www.nextbus.com/xmlFeedDocs/NextBusXMLFeed.pdf) data source. The [511 API](http://511.org/developer-resources_transit-api.asp) will soon be discontinued. I should actually have chosen the [Transport for London Unified API](https://api.tfl.gov.uk/) which has way better endpoints and documentation. Most of the coding time was spent towards getting around the weird API calls, limits and data modelling (i.e.: the entries don't have an unique ID, there's no endpoing for gathering a single resource data).
+I chose the [NextBus](http://www.nextbus.com/xmlFeedDocs/NextBusXMLFeed.pdf) data source. The [511 API](http://511.org/developer-resources_transit-api.asp) will soon be discontinued. I should actually have chosen the [Transport for London Unified API](https://api.tfl.gov.uk/) which has way better endpoints and documentation. Most of the coding time was spent towards getting around the weird API calls, limits and data modeling (i.e.: the entries don't have an unique ID, there's no endpoint for gathering a single resource data).
 
 The data source is encapsulated in a `nextbus` module that provides a facade to the API calls and formats the responses from XML to dictionaries.
 
-### Data Modelling and Initial Data
+### Data Modeling and Initial Data
 
 As we're using a relation database, it was simple to define the models and attributes.
 
@@ -139,7 +139,7 @@ As we're using a relation database, it was simple to define the models and attri
 
 The `Departure` model wasn't needed since its data is proxied from the NextBus API to the API endpoints.
 
-The `Agencies`, `Routes` and `Stops` data is fetched from the NextBus API in an initial step and stored to provide faster access for the API endpoints (such as retrieving the nearests stops within a distance).
+The `Agencies`, `Routes` and `Stops` data is fetched from the NextBus API in an initial step and stored to provide faster access for the API endpoints (such as retrieving the nearest stops within a distance).
 
 > **_Warning!_**  
 > The loader has a bug. It bulk inserts all the data without considering duplicate `Stops`. There is no unique ID for a `Stop`. To check for uniqueness it's needed to join the `Agency.tag` and the `Stop.tag`, and the current code doesn't do that.
@@ -166,11 +166,11 @@ It can be easily done using [Flask-Limiter](https://flask-limiter.readthedocs.io
 
 There is currently no caching in the API.
 
-It is a **very big deal** since requests to the API results in requests to the NextBus service - which is really slow (besides the rate limiting issue described above). Caching would dramatically improve the scalability of the API and is essential to this aplication.
+It is a **very big deal** since requests to the API results in requests to the NextBus service - which is really slow (besides the rate limiting issue described above). Caching would dramatically improve the scalability of the API and is essential to this application.
 
 Caching could be easily done by using a cache backend (such as Redis) and storing the NextBus responses for each bus stop/route departure information. Since the nature of the service depends on a close to real-time response for quality, the cache keys could have a TTL of 1 or 2 minutes.
 
-Another improvement is to cache the entire location based request by adding error to the coordinates (i.e.: reducing one or two digits from the lat/lon) and querying for a bigger area. This way we could increase the chance of a cache hit and reduce latency/database access since we would serve the entire request using only the cache.
+Another improvement is to cache the entire location based request by adding error to the coordinates (i.e.: reducing one or two digits from the lat/lng) and querying for a bigger area. This way we could increase the chance of a cache hit and reduce latency/database access since we would serve the entire request using only the cache.
 
 Possible improvements:
 - cache the departure times for a bus/route
@@ -230,6 +230,7 @@ There's also no versioning/changelog. A possible improvement is to use semantic 
 The documentation is generated with Sphinx and hosted in Read the Docs.
 
 Possible improvements:
+- document the API return types
 - document the models
 - document the `NextBus` class
 - document the `GeoLocation` class
