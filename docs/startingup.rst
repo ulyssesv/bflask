@@ -1,4 +1,0 @@
-.. _startingup:
-
-Starting up
-===========
